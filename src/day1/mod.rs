@@ -1,4 +1,5 @@
 use itertools::*;
+use rustc_hash::{FxBuildHasher, FxHashMap};
 
 type Output = u32;
 type Input = (Vec<u32>, Vec<u32>);
@@ -23,7 +24,7 @@ pub fn solve_part1(input: &Input) -> Output {
 
     left.into_iter()
         .sorted()
-        .zip_eq(right.into_iter().sorted())
+        .zip_eq(right.iter().sorted())
         .map(|(left, right)| left.abs_diff(*right))
         .sum::<Output>()
 }
@@ -32,10 +33,11 @@ pub fn solve_part1(input: &Input) -> Output {
 pub fn solve_part2(input: &Input) -> Output {
     let (left, right) = input;
 
-    let frequencies = right.into_iter().counts();
+    let mut counts = FxHashMap::with_capacity_and_hasher(right.len(), FxBuildHasher);
+    right.iter().for_each(|item| *counts.entry(item).or_default() += 1);
 
-    left.into_iter()
-        .map(|value| *frequencies.get(value).unwrap_or(&0) as u32 * value)
+    left.iter()
+        .map(|value| *counts.get(value).unwrap_or(&0) as u32 * value)
         .sum::<Output>()
 }
 
