@@ -45,12 +45,7 @@ pub fn solve_part2(input: &Input) -> Output {
 mod tests {
     use super::*;
 
-    const TEST_INPUT: &str = "3   4
-4   3
-2   5
-1   3
-3   9
-3   3";
+    const TEST_INPUT: &str = include_str!("../../examples/2024/day1.txt");
 
     #[test]
     fn test_part1() {
