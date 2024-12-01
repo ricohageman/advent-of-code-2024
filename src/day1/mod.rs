@@ -18,7 +18,7 @@ pub fn input_generator(input: &str) -> Input {
 }
 
 #[aoc(day1, part1)]
-pub fn solve_part_1(input: &Input) -> Output {
+pub fn solve_part1(input: &Input) -> Output {
     let (left, right) = input;
 
     left.into_iter()
@@ -29,7 +29,7 @@ pub fn solve_part_1(input: &Input) -> Output {
 }
 
 #[aoc(day1, part2)]
-pub fn solve_part_2(input: &Input) -> Output {
+pub fn solve_part2(input: &Input) -> Output {
     let (left, right) = input;
 
     let frequencies = right.into_iter().counts();
@@ -51,12 +51,12 @@ mod tests {
 3   3";
 
     #[test]
-    fn test_part_1() {
-        assert_eq!(11, solve_part_1(&input_generator(TEST_INPUT)));
+    fn test_part1() {
+        assert_eq!(11, solve_part1(&input_generator(TEST_INPUT)));
     }
 
     #[test]
-    fn test_part_2() {
-        assert_eq!(31, solve_part_2(&input_generator(TEST_INPUT)));
+    fn test_part2() {
+        assert_eq!(31, solve_part2(&input_generator(TEST_INPUT)));
     }
 }
