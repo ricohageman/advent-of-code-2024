@@ -4,7 +4,6 @@ use rustc_hash::{FxBuildHasher, FxHashMap};
 type Output = u32;
 type Input = (Vec<u32>, Vec<u32>);
 
-#[aoc_generator(day1)]
 pub fn input_generator(input: &str) -> Input {
     input
         .lines()
@@ -19,8 +18,8 @@ pub fn input_generator(input: &str) -> Input {
 }
 
 #[aoc(day1, part1)]
-pub fn part1(input: &Input) -> Output {
-    let (left, right) = input;
+pub fn part1(input: &str) -> Output {
+    let (left, right) = input_generator(input);
 
     left.into_iter()
         .sorted()
@@ -30,8 +29,8 @@ pub fn part1(input: &Input) -> Output {
 }
 
 #[aoc(day1, part2)]
-pub fn part2(input: &Input) -> Output {
-    let (left, right) = input;
+pub fn part2(input: &str) -> Output {
+    let (left, right) = input_generator(input);
 
     let mut counts = FxHashMap::with_capacity_and_hasher(right.len(), FxBuildHasher);
     right
@@ -51,11 +50,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(11, part1(&input_generator(TEST_INPUT)));
+        assert_eq!(11, part1(TEST_INPUT));
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(31, part2(&input_generator(TEST_INPUT)));
+        assert_eq!(31, part2(TEST_INPUT));
     }
 }

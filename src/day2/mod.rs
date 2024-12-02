@@ -3,18 +3,13 @@ use std::cmp::Ordering;
 use std::ops::RangeInclusive;
 
 type Output = usize;
-type Input = Vec<Vec<u32>>;
 
-#[aoc_generator(day2)]
-pub fn input_generator(input: &str) -> Input {
-    input
-        .lines()
-        .map(|line| {
-            line.split_whitespace()
-                .map(|item| item.parse().unwrap())
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>()
+pub fn input_generator(input: &str) -> impl Iterator<Item = Vec<u32>> + use<'_> {
+    input.lines().map(|line| {
+        line.split_whitespace()
+            .map(|item| item.parse().unwrap())
+            .collect::<Vec<_>>()
+    })
 }
 
 const ALLOWED_RANGE: RangeInclusive<u32> = 1..=3;
@@ -46,23 +41,25 @@ fn is_valid_report(report: &[u32]) -> bool {
 }
 
 #[aoc(day2, part1)]
-pub fn solve_part1(input: &Input) -> Output {
-    input
-        .iter()
+pub fn part1(input: &str) -> Output {
+    input_generator(input)
         .filter(|report| is_valid_report(report))
         .count()
 }
 
 #[aoc(day2, part2)]
-pub fn solve_part2(input: &Input) -> Output {
-    input
-        .iter()
+pub fn part2(input: &str) -> Output {
+    let mut workhorse = Vec::with_capacity(5);
+
+    input_generator(input)
         .filter(|report| {
             if is_valid_report(report) {
                 return true;
             }
 
-            let mut workhorse = report.to_vec();
+            workhorse.clear();
+            workhorse.extend_from_slice(report);
+
             let mut removed_element = workhorse.pop().unwrap();
             let mut temp = removed_element;
 
@@ -93,11 +90,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(2, solve_part1(&input_generator(TEST_INPUT)));
+        assert_eq!(2, part1(TEST_INPUT));
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(4, solve_part2(&input_generator(TEST_INPUT)));
+        assert_eq!(4, part2(TEST_INPUT));
     }
 }
