@@ -19,7 +19,7 @@ pub fn input_generator(input: &str) -> Input {
 }
 
 #[aoc(day1, part1)]
-pub fn solve_part1(input: &Input) -> Output {
+pub fn part1(input: &Input) -> Output {
     let (left, right) = input;
 
     left.into_iter()
@@ -30,7 +30,7 @@ pub fn solve_part1(input: &Input) -> Output {
 }
 
 #[aoc(day1, part2)]
-pub fn solve_part2(input: &Input) -> Output {
+pub fn part2(input: &Input) -> Output {
     let (left, right) = input;
 
     let mut counts = FxHashMap::with_capacity_and_hasher(right.len(), FxBuildHasher);
@@ -51,11 +51,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(11, solve_part1(&input_generator(TEST_INPUT)));
+        assert_eq!(11, part1(&input_generator(TEST_INPUT)));
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(31, solve_part2(&input_generator(TEST_INPUT)));
+        assert_eq!(31, part2(&input_generator(TEST_INPUT)));
     }
 }
