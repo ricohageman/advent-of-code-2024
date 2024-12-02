@@ -34,7 +34,9 @@ pub fn solve_part2(input: &Input) -> Output {
     let (left, right) = input;
 
     let mut counts = FxHashMap::with_capacity_and_hasher(right.len(), FxBuildHasher);
-    right.iter().for_each(|item| *counts.entry(item).or_default() += 1);
+    right
+        .iter()
+        .for_each(|item| *counts.entry(item).or_default() += 1);
 
     left.iter()
         .map(|value| *counts.get(value).unwrap_or(&0) as u32 * value)
