@@ -1,21 +1,67 @@
-use itertools::{cloned, Itertools};
-use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::HashMap;
-use std::io::BufRead;
+use itertools::Itertools;
 
 type Element = u8;
 type Output = u16;
 
-fn parse_input(input: &str) -> (HashMap<Element, Vec<Element>>, Vec<Vec<Element>>) {
-    let (rules, updates) = input.split_once("\n\n").unwrap();
+#[derive(Copy, Clone, Debug)]
+struct BitSet {
+    inner: u128
+}
 
-    let rules = rules
+impl BitSet {
+    pub fn zeros() -> Self {
+        Self { inner: 0 }
+    }
+
+    pub fn insert(&mut self, n: u8) {
+        self.inner = self.inner | (1 << n)
+    }
+
+    pub fn is_set(&self, n: u8) -> bool {
+        (self.inner >> n) & 1 > 0
+    }
+}
+
+pub struct BitSetIterator {
+    value: u128,
+    cur_index: u8
+}
+
+impl BitSetIterator {
+    pub fn new(value: u128) -> Self {
+        Self { value, cur_index: 0 }
+    }
+}
+
+impl Iterator for BitSetIterator {
+    type Item = u8;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.value {
+            0 => None,
+            val => {
+                let index = val.trailing_zeros();
+                self.value ^= 1 << index;
+                Some(index as u8)
+            }
+        }
+    }
+}
+
+fn parse_input(input: &str) -> ([BitSet; 100], Vec<Vec<Element>>) {
+    let (rules_input, updates) = input.split_once("\n\n").unwrap();
+
+    let mut rules: [BitSet; 100] = [BitSet::zeros(); 100];
+
+    rules_input
         .lines()
         .map(|line| {
             let (a, b) = line.split_once("|").unwrap();
             (b.parse::<Element>().unwrap(), a.parse::<Element>().unwrap())
         })
-        .into_group_map();
+        .for_each(|(b, a)| {
+            rules[b as usize].insert(a);
+        });
 
     let updates = updates
         .lines()
@@ -36,19 +82,23 @@ pub fn part1(input: &str) -> Output {
     updates
         .iter()
         .filter(|update| {
-            let includes: FxHashSet<Element> = update.iter().copied().collect();
-            let mut seen: FxHashSet<Element> = FxHashSet::default();
+            let mut includes: BitSet = BitSet::zeros();
 
             for element in update.iter() {
-                if let Some(rule) = rules.get(element) {
-                    let predecessor_not_seen = rule
-                        .iter()
-                        .filter(|element| includes.contains(element))
-                        .any(|element| !seen.contains(element));
+                includes.insert(*element);
+            }
 
-                    if predecessor_not_seen {
-                        return false;
-                    }
+            let mut seen: BitSet = BitSet::zeros();
+
+            for element in update.iter() {
+                let rule = rules[*element as usize];
+
+                let predecessor_not_seen = BitSetIterator::new(rule.inner)
+                    .into_iter()
+                    .any(|element| includes.is_set(element) && !seen.is_set(element));
+
+                if predecessor_not_seen {
+                    return false;
                 }
 
                 seen.insert(*element);
@@ -63,7 +113,7 @@ pub fn part1(input: &str) -> Output {
 #[aoc(day5, part2)]
 pub fn part2(input: &str) -> Output {
     let (rules, mut updates) = parse_input(input);
-    let mut index_of_element = [None; 100];
+    let mut index_of_element: [Option<u8>; 100] = [None; 100];
 
     updates
         .iter_mut()
@@ -71,23 +121,26 @@ pub fn part2(input: &str) -> Output {
             index_of_element = [None; 100];
 
             for (index, element) in update.iter().enumerate() {
-                index_of_element[*element as usize] = Some(index);
+                index_of_element[*element as usize] = Some(index as u8);
             }
 
             let mut changed = false;
-            let mut index = 0;
+            let mut index: u8 = 0;
+            let target = update.len() as u8;
 
-            while index < update.len() {
-                let element = update[index];
+            while index < target {
+                let element = update[index as usize];
 
-                let Some(rule) = rules.get(&element) else {
+                let rule = rules[element as usize];
+
+                if rule.inner == 0 {
                     index += 1;
                     continue;
-                };
+                }
 
-                let minimum_index = rule
-                    .iter()
-                    .filter_map(|element| Some((index_of_element[*element as usize]?, element)))
+                let minimum_index = BitSetIterator::new(rule.inner)
+                    .into_iter()
+                    .filter_map(|element| Some((index_of_element[element as usize]?, element)))
                     .max_by_key(|(index, _)| *index);
 
                 let Some((minimum_index, other_element)) = minimum_index else {
@@ -102,10 +155,10 @@ pub fn part2(input: &str) -> Output {
 
                 changed = true;
                 index_of_element[element as usize] = Some(minimum_index);
-                update[minimum_index] = element;
+                update[minimum_index as usize] = element;
 
-                index_of_element[*other_element as usize] = Some(index);
-                update[index] = *other_element;
+                index_of_element[other_element as usize] = Some(index);
+                update[index as usize] = other_element;
             }
 
             if !changed {
