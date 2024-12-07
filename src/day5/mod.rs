@@ -5,7 +5,7 @@ type Output = u16;
 
 #[derive(Copy, Clone, Debug)]
 struct BitSet {
-    inner: u128
+    inner: u128,
 }
 
 impl BitSet {
@@ -24,12 +24,15 @@ impl BitSet {
 
 pub struct BitSetIterator {
     value: u128,
-    cur_index: u8
+    cur_index: u8,
 }
 
 impl BitSetIterator {
     pub fn new(value: u128) -> Self {
-        Self { value, cur_index: 0 }
+        Self {
+            value,
+            cur_index: 0,
+        }
     }
 }
 
