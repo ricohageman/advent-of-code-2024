@@ -1,5 +1,6 @@
 use itertools::*;
-use std::collections::BTreeMap;
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::fmt::{Display, Formatter};
 
 fn format_disk(disk: &[Option<usize>]) {
@@ -90,7 +91,7 @@ struct Disk {
 
     // Key: start index of the gap
     // Value: length of the gap
-    gaps: BTreeMap<usize, usize>,
+    gaps: [BinaryHeap<Reverse<usize>>; 10],
 }
 
 impl Disk {
@@ -99,6 +100,10 @@ impl Disk {
     }
 
     fn add_block(&mut self, length: usize) {
+        if length == 0 {
+            return;
+        }
+
         self.blocks.push(Block {
             id: self.blocks.len(),
             start_index: self.index,
@@ -108,7 +113,11 @@ impl Disk {
     }
 
     fn add_gap(&mut self, length: usize) {
-        self.gaps.insert(self.index, length);
+        if length == 0 {
+            return;
+        }
+
+        self.gaps[length].push(Reverse(self.index));
         self.index += length;
     }
 }
@@ -119,11 +128,10 @@ impl Display for Disk {
             .blocks
             .iter()
             .map(|block| (block.start_index, block.length, block.id.to_string()))
-            .chain(
-                self.gaps
-                    .iter()
-                    .map(|(start_index, length)| (*start_index, *length, ".".to_string())),
-            )
+            .chain(self.gaps.iter().enumerate().flat_map(|(length, gaps)| {
+                gaps.iter()
+                    .map(move |index| (index.0, length, ".".to_string()))
+            }))
             .sorted_by_key(|(index, _, _)| *index);
 
         for (_, length, output) in elements {
@@ -155,27 +163,36 @@ impl Block {
 pub fn part2(input: &str) -> usize {
     let mut disk = parse_input(input);
 
-    for block in disk.blocks.iter_mut().rev() {
-        let Some((&gap_index, &gap_size)) = disk
-            .gaps
-            .iter()
-            .find(|(_, gap_size)| **gap_size >= block.length)
-        else {
+    for block_index in (0..disk.blocks.len()).rev() {
+        let block = &mut disk.blocks[block_index];
+        let mut earliest_large_enough_gap_index = block.start_index;
+        let mut earliest_large_enough_gap_size = None;
+
+        for gap_size in block.length..10 {
+            let Some(Reverse(gap_index)) = disk.gaps[gap_size].peek() else {
+                continue;
+            };
+
+            if *gap_index >= earliest_large_enough_gap_index {
+                continue;
+            }
+
+            earliest_large_enough_gap_index = *gap_index;
+            earliest_large_enough_gap_size = Some(gap_size);
+        }
+
+        let Some(earliest_large_enough_gap_size) = earliest_large_enough_gap_size else {
             continue;
         };
 
-        if gap_index > block.start_index {
-            continue;
-        }
+        disk.gaps[earliest_large_enough_gap_size].pop();
+        disk.gaps[block.length].push(Reverse(block.start_index));
 
-        disk.gaps.remove(&gap_index);
-        disk.gaps.insert(block.start_index, block.length);
+        block.start_index = earliest_large_enough_gap_index;
 
-        block.start_index = gap_index;
-
-        if gap_size > block.length {
-            disk.gaps
-                .insert(gap_index + block.length, gap_size - block.length);
+        if earliest_large_enough_gap_size > block.length {
+            disk.gaps[earliest_large_enough_gap_size - block.length]
+                .push(Reverse(earliest_large_enough_gap_index + block.length));
         }
     }
 
