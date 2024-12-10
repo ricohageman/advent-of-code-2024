@@ -2,6 +2,7 @@ use itertools::*;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::fmt::{Display, Formatter};
+use arrayvec::ArrayVec;
 
 fn parse_input(input: &str) -> Disk {
     let mut disk = Disk::default();
@@ -15,7 +16,7 @@ fn parse_input(input: &str) -> Disk {
             disk.add_gap(length);
         } else {
             empty = true;
-            disk.add_block(length);
+            disk.add_block(length as u8);
         }
     }
 
@@ -75,7 +76,7 @@ pub fn part1(input: &str) -> usize {
 struct Disk {
     index: usize,
 
-    blocks: Vec<Block>,
+    blocks: ArrayVec<Block, 10_000>,
 
     // Key: start index of the gap
     // Value: length of the gap
@@ -87,7 +88,7 @@ impl Disk {
         self.blocks.iter().map(|block| block.checksum()).sum()
     }
 
-    fn add_block(&mut self, length: usize) {
+    fn add_block(&mut self, length: u8) {
         if length == 0 {
             return;
         }
@@ -97,7 +98,7 @@ impl Disk {
             start_index: self.index,
             length,
         });
-        self.index += length;
+        self.index += length as usize;
     }
 
     fn add_gap(&mut self, length: usize) {
@@ -115,7 +116,7 @@ impl Display for Disk {
         let elements = self
             .blocks
             .iter()
-            .map(|block| (block.start_index, block.length, block.id.to_string()))
+            .map(|block| (block.start_index, block.length as usize, block.id.to_string()))
             .chain(self.gaps.iter().enumerate().flat_map(|(length, gaps)| {
                 gaps.iter()
                     .map(move |index| (index.0, length, ".".to_string()))
@@ -136,12 +137,12 @@ impl Display for Disk {
 struct Block {
     id: usize,
     start_index: usize,
-    length: usize,
+    length: u8,
 }
 
 impl Block {
     fn checksum(&self) -> usize {
-        (0..self.length)
+        (0..self.length as usize)
             .map(|offset| (offset + self.start_index) * self.id)
             .sum()
     }
@@ -156,7 +157,7 @@ pub fn part2(input: &str) -> usize {
         let mut earliest_large_enough_gap_size = None;
 
         for gap_size in block.length..10 {
-            let Some(Reverse(gap_index)) = disk.gaps[gap_size].peek() else {
+            let Some(Reverse(gap_index)) = disk.gaps[gap_size as usize].peek() else {
                 continue;
             };
 
@@ -165,21 +166,21 @@ pub fn part2(input: &str) -> usize {
             }
 
             earliest_large_enough_gap_index = *gap_index;
-            earliest_large_enough_gap_size = Some(gap_size);
+            earliest_large_enough_gap_size = Some(gap_size as usize);
         }
 
         let Some(earliest_large_enough_gap_size) = earliest_large_enough_gap_size else {
             continue;
         };
 
-        disk.gaps[earliest_large_enough_gap_size].pop();
-        disk.gaps[block.length].push(Reverse(block.start_index));
+        disk.gaps[earliest_large_enough_gap_size as usize].pop();
+        disk.gaps[block.length as usize].push(Reverse(block.start_index));
 
         block.start_index = earliest_large_enough_gap_index;
 
-        if earliest_large_enough_gap_size > block.length {
-            disk.gaps[earliest_large_enough_gap_size - block.length]
-                .push(Reverse(earliest_large_enough_gap_index + block.length));
+        if earliest_large_enough_gap_size > block.length as usize {
+            disk.gaps[earliest_large_enough_gap_size - block.length as usize]
+                .push(Reverse(earliest_large_enough_gap_index + block.length as usize));
         }
     }
 
