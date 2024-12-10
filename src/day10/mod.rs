@@ -1,6 +1,6 @@
 use itertools::*;
-use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
+use fixedbitset::FixedBitSet;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -19,8 +19,11 @@ struct Grid {
     height: usize,
 }
 
+static mut QUEUE: VecDeque<(usize, u8)> = VecDeque::new();
+static mut TRAIL_ENDS: FixedBitSet = FixedBitSet::new();
+
 impl Grid {
-    fn from_input(input: &str) -> Self {
+    unsafe fn from_input(input: &str) -> Self {
         let inner = input
             .lines()
             .filter(|line| !line.is_empty())
@@ -37,6 +40,9 @@ impl Grid {
 
         let width = input.lines().next().unwrap().len();
         let height = inner.len() / width;
+
+        TRAIL_ENDS.grow(width * height);
+        QUEUE.reserve(width * height);
 
         Self {
             inner,
@@ -86,11 +92,11 @@ impl Grid {
         self.inner.iter().positions(|height| *height == 0)
     }
 
-    fn find_trails_starting_at(&self, trail_head: usize, mut trail_end: impl FnMut(usize)) {
-        let mut queue = VecDeque::new();
-        queue.push_front((trail_head, 0));
+    unsafe fn find_trails_starting_at(&self, trail_head: usize, mut trail_end: impl FnMut(usize)) {
+        QUEUE.clear();
+        QUEUE.push_front((trail_head, 0));
 
-        while let Some((index, height)) = queue.pop_front() {
+        while let Some((index, height)) = QUEUE.pop_front() {
             if height == 9 {
                 trail_end(index);
                 continue;
@@ -107,42 +113,45 @@ impl Grid {
                     continue;
                 }
 
-                queue.push_front((next_index, next_height));
+                QUEUE.push_front((next_index, next_height));
             }
         }
     }
 }
 
 pub fn part1(input: &str) -> usize {
-    let grid = Grid::from_input(input);
+    unsafe {
+        let grid = Grid::from_input(input);
 
-    grid.trail_heads()
-        .map(|trail_head| {
-            let mut trail_ends: FxHashSet<usize> = FxHashSet::default();
+        grid.trail_heads()
+            .map(|trail_head| {
+                TRAIL_ENDS.clear();
+                grid.find_trails_starting_at(trail_head, |trail_end| {
+                    TRAIL_ENDS.insert(trail_end);
+                });
 
-            grid.find_trails_starting_at(trail_head, |trail_end| {
-                trail_ends.insert(trail_end);
-            });
-
-            trail_ends.len()
-        })
-        .sum()
+                TRAIL_ENDS.count_ones(..)
+            })
+            .sum()
+    }
 }
 
 pub fn part2(input: &str) -> usize {
-    let grid = Grid::from_input(input);
+    unsafe {
+        let grid = Grid::from_input(input);
 
-    grid.trail_heads()
-        .map(|trail_head| {
-            let mut rating = 0;
+        grid.trail_heads()
+            .map(|trail_head| {
+                let mut rating = 0;
 
-            grid.find_trails_starting_at(trail_head, |_| {
-                rating += 1;
-            });
+                grid.find_trails_starting_at(trail_head, |_| {
+                    rating += 1;
+                });
 
-            rating
-        })
-        .sum()
+                rating
+            })
+            .sum()
+    }
 }
 
 #[cfg(test)]
