@@ -18,7 +18,7 @@ fn parse_input(input: &str) -> Disk {
     let mut disk = Disk::default();
     let mut empty = false;
 
-    for count in input.chars() {
+    for count in input.lines().next().unwrap().chars() {
         let length = count.to_digit(10).unwrap() as usize;
 
         if empty {
@@ -39,7 +39,7 @@ pub fn part1(input: &str) -> usize {
     let mut next_id = 0;
     let mut empty = false;
 
-    for count in input.chars() {
+    for count in input.lines().next().unwrap().chars() {
         let element = match empty {
             true => {
                 empty = false;
