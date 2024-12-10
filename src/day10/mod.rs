@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use fixedbitset::FixedBitSet;
 use itertools::*;
 use std::collections::VecDeque;
@@ -15,6 +16,7 @@ enum Direction {
 #[derive(Debug)]
 struct Grid {
     inner: [u8; 1600],
+    trail_heads: ArrayVec<u16, 320>,
     width: usize,
     height: usize,
 }
@@ -33,11 +35,11 @@ impl GridFinder {
     fn find_trails_starting_at(
         &mut self,
         grid: &Grid,
-        trail_head: usize,
+        trail_head: u16,
         mut trail_end: impl FnMut(usize),
     ) {
         self.queue.clear();
-        self.queue.push_front((trail_head, 0));
+        self.queue.push_front((trail_head as usize, 0));
 
         while let Some((index, height)) = self.queue.pop_front() {
             if height == 9 {
@@ -67,7 +69,8 @@ impl Grid {
         let width = input.lines().next().unwrap().len();
         let mut height = 0;
 
-        let mut inner: [u8; 1600] = [u8::MAX; 1600];
+        let mut inner = [u8::MAX; 1600];
+        let mut trail_heads = ArrayVec::new();
 
         input
             .lines()
@@ -76,7 +79,14 @@ impl Grid {
             .for_each(|(y, line)| {
                 height += 1;
                 line.chars().enumerate().for_each(|(x, c)| {
-                    inner[y * width + x] = c.to_digit(10).unwrap() as u8;
+                    let value = c.to_digit(10).unwrap() as u8;
+                    let index = y * width + x;
+
+                    inner[index] = value;
+
+                    if value == 0 {
+                        trail_heads.push(index as u16);
+                    }
                 })
             });
 
@@ -84,6 +94,7 @@ impl Grid {
             inner,
             width,
             height,
+            trail_heads,
         }
     }
 
@@ -123,10 +134,6 @@ impl Grid {
             }
         }
     }
-
-    fn trail_heads(&self) -> impl Iterator<Item = usize> + use<'_> {
-        self.inner.iter().positions(|height| *height == 0)
-    }
 }
 
 pub fn part1(input: &str) -> usize {
@@ -134,10 +141,11 @@ pub fn part1(input: &str) -> usize {
     let mut finder = GridFinder::new(&grid);
     let mut trail_ends = FixedBitSet::with_capacity(grid.width * grid.height);
 
-    grid.trail_heads()
+    grid.trail_heads
+        .iter()
         .map(|trail_head| {
             trail_ends.clear();
-            finder.find_trails_starting_at(&grid, trail_head, |trail_end| {
+            finder.find_trails_starting_at(&grid, *trail_head, |trail_end| {
                 trail_ends.insert(trail_end);
             });
 
@@ -150,11 +158,12 @@ pub fn part2(input: &str) -> usize {
     let grid = Grid::from_input(input);
     let mut finder = GridFinder::new(&grid);
 
-    grid.trail_heads()
+    grid.trail_heads
+        .iter()
         .map(|trail_head| {
             let mut rating = 0;
 
-            finder.find_trails_starting_at(&grid, trail_head, |_| {
+            finder.find_trails_starting_at(&grid, *trail_head, |_| {
                 rating += 1;
             });
 
