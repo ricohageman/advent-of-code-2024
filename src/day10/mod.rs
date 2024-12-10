@@ -1,6 +1,6 @@
+use fixedbitset::FixedBitSet;
 use itertools::*;
 use std::collections::VecDeque;
-use fixedbitset::FixedBitSet;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -19,8 +19,48 @@ struct Grid {
     height: usize,
 }
 
-static mut QUEUE: VecDeque<(usize, u8)> = VecDeque::new();
-static mut TRAIL_ENDS: FixedBitSet = FixedBitSet::new();
+struct GridFinder {
+    queue: VecDeque<(usize, u8)>,
+}
+
+impl GridFinder {
+    pub fn new(grid: &Grid) -> Self {
+        Self {
+            queue: VecDeque::with_capacity(grid.width * grid.height),
+        }
+    }
+
+    fn find_trails_starting_at(
+        &mut self,
+        grid: &Grid,
+        trail_head: usize,
+        mut trail_end: impl FnMut(usize),
+    ) {
+        self.queue.clear();
+        self.queue.push_front((trail_head, 0));
+
+        while let Some((index, height)) = self.queue.pop_front() {
+            if height == 9 {
+                trail_end(index);
+                continue;
+            }
+
+            for direction in Direction::iter() {
+                let Some(next_index) = grid.move_towards(index, direction) else {
+                    continue;
+                };
+
+                let next_height = grid.at(next_index);
+
+                if next_height != height + 1 {
+                    continue;
+                }
+
+                self.queue.push_front((next_index, next_height));
+            }
+        }
+    }
+}
 
 impl Grid {
     fn from_input(input: &str) -> Self {
@@ -39,11 +79,6 @@ impl Grid {
                     inner[y * width + x] = c.to_digit(10).unwrap() as u8;
                 })
             });
-
-        unsafe {
-            TRAIL_ENDS.grow(width * height);
-            QUEUE.reserve(width * height);
-        }
 
         Self {
             inner,
@@ -92,67 +127,40 @@ impl Grid {
     fn trail_heads(&self) -> impl Iterator<Item = usize> + use<'_> {
         self.inner.iter().positions(|height| *height == 0)
     }
-
-    unsafe fn find_trails_starting_at(&self, trail_head: usize, mut trail_end: impl FnMut(usize)) {
-        QUEUE.clear();
-        QUEUE.push_front((trail_head, 0));
-
-        while let Some((index, height)) = QUEUE.pop_front() {
-            if height == 9 {
-                trail_end(index);
-                continue;
-            }
-
-            for direction in Direction::iter() {
-                let Some(next_index) = self.move_towards(index, direction) else {
-                    continue;
-                };
-
-                let next_height = self.at(next_index);
-
-                if next_height != height + 1 {
-                    continue;
-                }
-
-                QUEUE.push_front((next_index, next_height));
-            }
-        }
-    }
 }
 
 pub fn part1(input: &str) -> usize {
-    unsafe {
-        let grid = Grid::from_input(input);
+    let grid = Grid::from_input(input);
+    let mut finder = GridFinder::new(&grid);
+    let mut trail_ends = FixedBitSet::with_capacity(grid.width * grid.height);
 
-        grid.trail_heads()
-            .map(|trail_head| {
-                TRAIL_ENDS.clear();
-                grid.find_trails_starting_at(trail_head, |trail_end| {
-                    TRAIL_ENDS.insert(trail_end);
-                });
+    grid.trail_heads()
+        .map(|trail_head| {
+            trail_ends.clear();
+            finder.find_trails_starting_at(&grid, trail_head, |trail_end| {
+                trail_ends.insert(trail_end);
+            });
 
-                TRAIL_ENDS.count_ones(..)
-            })
-            .sum()
-    }
+            trail_ends.count_ones(..)
+        })
+        .sum()
 }
 
 pub fn part2(input: &str) -> usize {
-    unsafe {
-        let grid = Grid::from_input(input);
+    let grid = Grid::from_input(input);
+    let mut finder = GridFinder::new(&grid);
 
-        grid.trail_heads()
-            .map(|trail_head| {
-                let mut rating = 0;
+    grid.trail_heads()
+        .map(|trail_head| {
+            let mut rating = 0;
 
-                grid.find_trails_starting_at(trail_head, |_| {
-                    rating += 1;
-                });
+            finder.find_trails_starting_at(&grid, trail_head, |_| {
+                rating += 1;
+            });
 
-                rating
-            })
-            .sum()
-    }
+            rating
+        })
+        .sum()
 }
 
 #[cfg(test)]

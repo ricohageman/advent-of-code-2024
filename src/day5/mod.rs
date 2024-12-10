@@ -26,9 +26,7 @@ pub struct BitSetIterator {
 
 impl BitSetIterator {
     pub fn new(value: u128) -> Self {
-        Self {
-            value,
-        }
+        Self { value }
     }
 }
 
