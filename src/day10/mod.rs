@@ -14,7 +14,7 @@ enum Direction {
 
 #[derive(Debug)]
 struct Grid {
-    inner: Vec<u8>,
+    inner: [u8; 1600],
     width: usize,
     height: usize,
 }
@@ -23,26 +23,27 @@ static mut QUEUE: VecDeque<(usize, u8)> = VecDeque::new();
 static mut TRAIL_ENDS: FixedBitSet = FixedBitSet::new();
 
 impl Grid {
-    unsafe fn from_input(input: &str) -> Self {
-        let inner = input
-            .lines()
-            .filter(|line| !line.is_empty())
-            .flat_map(|line| {
-                line.chars().map(|c| {
-                    if c == '.' {
-                        return 10;
-                    }
-
-                    c.to_digit(10).unwrap() as u8
-                })
-            })
-            .collect::<Vec<_>>();
-
+    fn from_input(input: &str) -> Self {
         let width = input.lines().next().unwrap().len();
-        let height = inner.len() / width;
+        let mut height = 0;
 
-        TRAIL_ENDS.grow(width * height);
-        QUEUE.reserve(width * height);
+        let mut inner: [u8; 1600] = [u8::MAX; 1600];
+
+        input
+            .lines()
+            .enumerate()
+            .filter(|(_, line)| !line.is_empty())
+            .for_each(|(y, line)| {
+                height += 1;
+                line.chars().enumerate().for_each(|(x, c)| {
+                    inner[y * width + x] = c.to_digit(10).unwrap() as u8;
+                })
+            });
+
+        unsafe {
+            TRAIL_ENDS.grow(width * height);
+            QUEUE.reserve(width * height);
+        }
 
         Self {
             inner,
