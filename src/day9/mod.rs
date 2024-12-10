@@ -3,17 +3,6 @@ use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::fmt::{Display, Formatter};
 
-fn format_disk(disk: &[Option<usize>]) {
-    for element in disk {
-        let element = match element {
-            None => ".".to_string(),
-            Some(index) => index.to_string(),
-        };
-        print!("{}", element);
-    }
-    println!();
-}
-
 fn parse_input(input: &str) -> Disk {
     let mut disk = Disk::default();
     let mut empty = false;
@@ -33,7 +22,6 @@ fn parse_input(input: &str) -> Disk {
     disk
 }
 
-#[aoc(day9, part1)]
 pub fn part1(input: &str) -> usize {
     let mut disk: Vec<Option<usize>> = Vec::new();
     let mut next_id = 0;
@@ -159,7 +147,6 @@ impl Block {
     }
 }
 
-#[aoc(day9, part2)]
 pub fn part2(input: &str) -> usize {
     let mut disk = parse_input(input);
 

@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 type Element = u8;
 type Output = u16;
 
@@ -24,14 +22,12 @@ impl BitSet {
 
 pub struct BitSetIterator {
     value: u128,
-    cur_index: u8,
 }
 
 impl BitSetIterator {
     pub fn new(value: u128) -> Self {
         Self {
             value,
-            cur_index: 0,
         }
     }
 }
@@ -78,7 +74,6 @@ fn parse_input(input: &str) -> ([BitSet; 100], Vec<Vec<Element>>) {
     (rules, updates)
 }
 
-#[aoc(day5, part1)]
 pub fn part1(input: &str) -> Output {
     let (rules, updates) = parse_input(input);
 
@@ -113,7 +108,6 @@ pub fn part1(input: &str) -> Output {
         .sum()
 }
 
-#[aoc(day5, part2)]
 pub fn part2(input: &str) -> Output {
     let (rules, mut updates) = parse_input(input);
     let mut index_of_element: [Option<u8>; 100] = [None; 100];

@@ -40,14 +40,12 @@ fn is_valid_report(report: &[u32]) -> bool {
     })
 }
 
-#[aoc(day2, part1)]
 pub fn part1(input: &str) -> Output {
     input_generator(input)
         .filter(|report| is_valid_report(report))
         .count()
 }
 
-#[aoc(day2, part2)]
 pub fn part2(input: &str) -> Output {
     let mut workhorse = Vec::with_capacity(5);
 
@@ -61,14 +59,13 @@ pub fn part2(input: &str) -> Output {
             workhorse.extend_from_slice(report);
 
             let mut removed_element = workhorse.pop().unwrap();
-            let mut temp = removed_element;
 
             if is_valid_report(&workhorse) {
                 return true;
             }
 
             for index in (0..workhorse.len()).rev() {
-                temp = workhorse[index];
+                let temp = workhorse[index];
                 workhorse[index] = removed_element;
                 removed_element = temp;
 

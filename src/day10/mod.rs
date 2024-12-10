@@ -1,7 +1,6 @@
 use itertools::*;
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
-use std::fmt::Display;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -114,7 +113,6 @@ impl Grid {
     }
 }
 
-#[aoc(day10, part1)]
 pub fn part1(input: &str) -> usize {
     let grid = Grid::from_input(input);
 
@@ -131,7 +129,6 @@ pub fn part1(input: &str) -> usize {
         .sum()
 }
 
-#[aoc(day10, part2)]
 pub fn part2(input: &str) -> usize {
     let grid = Grid::from_input(input);
 
@@ -139,7 +136,7 @@ pub fn part2(input: &str) -> usize {
         .map(|trail_head| {
             let mut rating = 0;
 
-            grid.find_trails_starting_at(trail_head, |trail_end| {
+            grid.find_trails_starting_at(trail_head, |_| {
                 rating += 1;
             });
 

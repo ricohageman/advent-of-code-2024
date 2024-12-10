@@ -23,7 +23,6 @@ fn parse_input(input: &str) -> (isize, isize, HashMap<char, Vec<(isize, isize)>>
     (width, height, antennas)
 }
 
-#[aoc(day8, part1)]
 pub fn part1(input: &str) -> usize {
     let (width, height, antennas) = parse_input(input);
 
@@ -53,7 +52,6 @@ pub fn part1(input: &str) -> usize {
     antinodes.len()
 }
 
-#[aoc(day8, part2)]
 pub fn part2(input: &str) -> usize {
     let (width, height, antennas) = parse_input(input);
 

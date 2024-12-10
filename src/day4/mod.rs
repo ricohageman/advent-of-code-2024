@@ -116,7 +116,6 @@ impl Grid {
     }
 }
 
-#[aoc(day4, part1)]
 pub fn part1(input: &str) -> Output {
     let grid = Grid::from_input(input);
 
@@ -151,7 +150,6 @@ pub fn part1(input: &str) -> Output {
         .sum()
 }
 
-#[aoc(day4, part2)]
 pub fn part2(input: &str) -> Output {
     let grid = Grid::from_input(input);
 

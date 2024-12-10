@@ -17,7 +17,6 @@ pub fn input_generator(input: &str) -> Input {
         .unzip()
 }
 
-#[aoc(day1, part1)]
 pub fn part1(input: &str) -> Output {
     let (left, right) = input_generator(input);
 
@@ -28,7 +27,6 @@ pub fn part1(input: &str) -> Output {
         .sum::<Output>()
 }
 
-#[aoc(day1, part2)]
 pub fn part2(input: &str) -> Output {
     let (left, right) = input_generator(input);
 

@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::collections::VecDeque;
 
 pub fn solve_with_operations(input: &str, allow_concatenation: bool) -> usize {
@@ -52,12 +51,10 @@ pub fn solve_with_operations(input: &str, allow_concatenation: bool) -> usize {
         .sum()
 }
 
-#[aoc(day7, part1)]
 pub fn part1(input: &str) -> usize {
     solve_with_operations(input, false)
 }
 
-#[aoc(day7, part2)]
 pub fn part2(input: &str) -> usize {
     solve_with_operations(input, true)
 }

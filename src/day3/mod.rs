@@ -14,7 +14,6 @@ fn parse_multiplication(input: &str) -> Output {
     left.parse::<usize>().unwrap() * right.parse::<usize>().unwrap()
 }
 
-#[aoc(day3, part1)]
 pub fn part1(input: &str) -> Output {
     let regex = Regex::new(r"(mul\(\d*,\d*\))").unwrap();
     regex
@@ -23,7 +22,6 @@ pub fn part1(input: &str) -> Output {
         .sum()
 }
 
-#[aoc(day3, part2)]
 pub fn part2(input: &str) -> Output {
     let regex = Regex::new(r"(mul\(\d*,\d*\))|(do\(\))|(don\'t\(\))").unwrap();
     let (_, sum) = regex
