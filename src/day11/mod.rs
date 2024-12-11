@@ -37,6 +37,11 @@ fn blink(
     //          right half of the digits are engraved on the new right stone.
     let number_of_digits = stone.ilog10() + 1;
     if number_of_digits % 2 == 0 {
+        // Optimisation: Don't perform the actual manipulation of numbers if it's not required
+        if iterations_left == 1 {
+            return 2;
+        }
+
         let number_of_digits = number_of_digits / 2;
 
         let value = blink(
