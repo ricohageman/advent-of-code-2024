@@ -1,6 +1,5 @@
 use arrayvec::ArrayVec;
 use fixedbitset::FixedBitSet;
-use itertools::*;
 use std::collections::VecDeque;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
